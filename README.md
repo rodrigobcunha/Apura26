@@ -6,7 +6,7 @@ Painel independente, responsivo e em tempo real para acompanhar a totalização 
 
 > O APURA 26 não é um produto oficial do Tribunal Superior Eleitoral. Os resultados exibidos são consumidos dos arquivos públicos de divulgação do TSE.
 
-## O que há na v2.3
+## O que há na v2.4
 
 - interface compacta em uma única tela, pensada para TV;
 - modo claro e escuro;
@@ -121,7 +121,7 @@ Dados eleitorais: Tribunal Superior Eleitoral (TSE).
 As bandeiras estaduais são carregadas do projeto aberto `akagabi/bandeira-dos-estados-do-brasil` (MIT). A malha estadual é carregada do conjunto aberto `codeforamerica/click_that_hood`.
 
 
-## Ajustes da v2.3
+## Ajustes da v2.4
 
 - Corrige o fallback de foto que aparecia como um círculo de iniciais por cima/abaixo dos candidatos.
 - Aumenta fontes e áreas úteis dos cards para leitura em TV.
@@ -132,7 +132,7 @@ As bandeiras estaduais são carregadas do projeto aberto `akagabi/bandeira-dos-e
 - O botão da timeline não ativa mais rotação automática de cargos.
 
 
-## Ajustes de legibilidade da v2.3
+## Ajustes de legibilidade da v2.4
 
 - Painel de candidatos redesenhado em **duas colunas de cards horizontais**, com foto, nome, partido e percentual legíveis a distância.
 - Coluna esquerda ampliada e percentual de seções destacado sem sobreposição de elementos.
@@ -141,7 +141,7 @@ As bandeiras estaduais são carregadas do projeto aberto `akagabi/bandeira-dos-e
 - Mantida a aba atual durante todas as atualizações automáticas.
 
 
-## v2.3
+## v2.4
 
 - Card de candidatos ampliado até o fim da coluna esquerda.
 - Gráfico “Ao longo da apuração” ocultado para priorizar leitura na TV.
@@ -150,3 +150,11 @@ As bandeiras estaduais são carregadas do projeto aberto `akagabi/bandeira-dos-e
 - Internacional usa imagens reais de bandeiras dos países, com fallback por código ISO.
 
 Criado por **Rodrigo Bahiense**.
+
+
+## v2.4 — atualização ao vivo no GitHub Pages
+
+- As consultas aos JSONs oficiais do TSE usam cache-buster para evitar resposta antiga de CDN/browser.
+- O cabeçalho separa a hora do arquivo oficial (`TSE HH:MM:SS`) da hora da última leitura (`consultado HH:MM:SS`).
+- A aba ativa é atualizada a cada 8 segundos e os panoramas por UF a cada 45 segundos.
+- Ao voltar para a aba do navegador ou recuperar a conexão, o painel atualiza imediatamente.
