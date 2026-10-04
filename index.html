@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#080d18" />
+  <meta name="description" content="APURA 26 — painel independente para acompanhar os resultados oficiais das Eleições 2026 em tempo real." />
+  <meta name="author" content="Rodrigo Bahiense" />
+  <title>APURA 26 • Resultados Eleitorais em Tempo Real</title>
+
+  <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="./css/styles.css" />
+</head>
+<body>
+  <!--
+    APURA 26
+    Aplicação criada por Rodrigo Bahiense — 2026.
+    Projeto independente. Dados eleitorais: Tribunal Superior Eleitoral (TSE).
+  -->
+
+  <div class="ambient ambient-a" aria-hidden="true"></div>
+  <div class="ambient ambient-b" aria-hidden="true"></div>
+
+  <header class="topbar glass">
+    <a class="brand" href="#" aria-label="APURA 26 - página inicial">
+      <span class="brand-mark">A<span>26</span></span>
+      <span class="brand-copy">
+        <strong>APURA 26</strong>
+        <small>Resultados eleitorais em tempo real</small>
+      </span>
+    </a>
+
+    <nav class="desktop-nav" aria-label="Navegação principal">
+      <button class="nav-btn is-active" data-view="apuracao">Apuração</button>
+      <button class="nav-btn" data-view="exterior">Exterior</button>
+      <button class="nav-btn" data-view="senado">Senado</button>
+      <button class="nav-btn" data-view="camara">Câmara</button>
+    </nav>
+
+    <div class="top-actions">
+      <div class="live-pill" id="livePill" title="Estado da conexão com os dados oficiais">
+        <span class="live-dot"></span>
+        <span id="liveLabel">Conectando</span>
+      </div>
+      <button class="icon-btn" id="themeToggle" aria-label="Alternar tema claro e escuro" title="Tema claro/escuro">
+        <span id="themeIcon">☾</span>
+      </button>
+      <button class="icon-btn tv-button" id="tvModeBtn" aria-label="Ativar modo TV" title="Modo TV">TV</button>
+    </div>
+  </header>
+
+  <main class="app-shell">
+    <section class="hero glass">
+      <div class="hero-copy">
+        <div class="eyebrow">ELEIÇÕES GERAIS • 1º TURNO • 04/10/2026</div>
+        <h1 id="heroTitle">Presidente da República</h1>
+        <p id="heroSubtitle">Totalização oficial do Tribunal Superior Eleitoral</p>
+      </div>
+      <div class="hero-meta">
+        <div>
+          <span>Última atualização</span>
+          <strong id="lastUpdate">—</strong>
+        </div>
+        <div>
+          <span>Fonte</span>
+          <strong>TSE • Oficial</strong>
+        </div>
+      </div>
+    </section>
+
+    <section class="controls glass" id="controlsPanel">
+      <div class="field">
+        <label for="officeSelect">Cargo</label>
+        <select id="officeSelect">
+          <option value="president">Presidente</option>
+          <option value="governor">Governador</option>
+          <option value="senator">Senador</option>
+          <option value="federalDeputy">Deputado Federal</option>
+          <option value="stateDeputy">Deputado Estadual</option>
+          <option value="districtDeputy">Deputado Distrital</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="stateSelect">Abrangência</label>
+        <select id="stateSelect"></select>
+      </div>
+      <div class="field map-mode-field">
+        <label for="mapModeSelect">Mapa</label>
+        <select id="mapModeSelect">
+          <option value="leader">Maior votação parcial</option>
+          <option value="progress">% totalizado</option>
+        </select>
+      </div>
+      <button class="primary-btn" id="refreshBtn"><span>↻</span> Atualizar agora</button>
+    </section>
+
+    <section class="view is-active" data-view-panel="apuracao">
+      <div class="kpi-grid">
+        <article class="kpi-card glass accent-card">
+          <span class="kpi-label">Seções totalizadas</span>
+          <strong class="kpi-value" id="progressValue">—</strong>
+          <div class="progress-track"><span id="progressBar"></span></div>
+          <small id="sectionCount">Aguardando totalização</small>
+        </article>
+        <article class="kpi-card glass">
+          <span class="kpi-label">Votos computados</span>
+          <strong class="kpi-value" id="totalVotes">—</strong>
+          <small id="validVotes">— votos válidos</small>
+        </article>
+        <article class="kpi-card glass">
+          <span class="kpi-label">Comparecimento</span>
+          <strong class="kpi-value" id="turnoutValue">—</strong>
+          <small id="abstentionValue">Abstenção: —</small>
+        </article>
+        <article class="kpi-card glass">
+          <span class="kpi-label">Brancos + nulos</span>
+          <strong class="kpi-value" id="blankNullValue">—</strong>
+          <small id="blankNullDetail">Brancos — • Nulos —</small>
+        </article>
+      </div>
+
+      <div class="main-grid">
+        <section class="panel glass candidates-panel">
+          <div class="panel-head">
+            <div>
+              <span class="section-kicker">RESULTADO PARCIAL</span>
+              <h2 id="candidateHeading">Candidatos</h2>
+            </div>
+            <span class="muted-badge" id="candidateCount">—</span>
+          </div>
+          <div class="candidate-list" id="candidateList">
+            <div class="skeleton candidate-skeleton"></div>
+            <div class="skeleton candidate-skeleton"></div>
+            <div class="skeleton candidate-skeleton"></div>
+          </div>
+        </section>
+
+        <section class="panel glass map-panel">
+          <div class="panel-head map-head">
+            <div>
+              <span class="section-kicker">MAPA ELEITORAL</span>
+              <h2 id="mapHeading">Brasil por estado</h2>
+            </div>
+            <button class="ghost-btn" id="resetMapBtn" hidden>Voltar ao Brasil</button>
+          </div>
+          <div id="brazilMap" class="map-canvas" role="img" aria-label="Mapa eleitoral do Brasil"></div>
+          <div class="map-legend" id="mapLegend"></div>
+          <div class="map-status" id="mapStatus">Carregando malha geográfica…</div>
+        </section>
+      </div>
+
+      <div class="analytics-grid">
+        <section class="panel glass chart-panel">
+          <div class="panel-head">
+            <div>
+              <span class="section-kicker">EVOLUÇÃO</span>
+              <h2>Votação ao longo da apuração</h2>
+            </div>
+            <span class="muted-badge">este navegador</span>
+          </div>
+          <div class="chart-wrap"><canvas id="candidateChart"></canvas></div>
+        </section>
+
+        <section class="panel glass chart-panel">
+          <div class="panel-head">
+            <div>
+              <span class="section-kicker">TOTALIZAÇÃO</span>
+              <h2>Avanço da apuração</h2>
+            </div>
+          </div>
+          <div class="chart-wrap"><canvas id="progressChart"></canvas></div>
+        </section>
+      </div>
+    </section>
+
+    <section class="view" data-view-panel="exterior">
+      <div class="section-intro glass">
+        <div>
+          <span class="section-kicker">VOTO NO EXTERIOR</span>
+          <h2>Brasileiros no exterior</h2>
+          <p>Resultado oficial agregado na abrangência <strong>ZZ</strong>. A visualização não mistura boletins avulsos nem estimativas com a totalização oficial.</p>
+        </div>
+        <div class="orbital-globe" aria-hidden="true"><span>🌎</span></div>
+      </div>
+
+      <div class="kpi-grid exterior-kpis">
+        <article class="kpi-card glass accent-card">
+          <span class="kpi-label">Seções totalizadas</span>
+          <strong class="kpi-value" id="foreignProgress">—</strong>
+          <div class="progress-track"><span id="foreignProgressBar"></span></div>
+        </article>
+        <article class="kpi-card glass">
+          <span class="kpi-label">Votos computados</span>
+          <strong class="kpi-value" id="foreignVotes">—</strong>
+          <small>Presidente da República</small>
+        </article>
+        <article class="kpi-card glass">
+          <span class="kpi-label">Comparecimento</span>
+          <strong class="kpi-value" id="foreignTurnout">—</strong>
+          <small id="foreignAbstention">Abstenção: —</small>
+        </article>
+        <article class="kpi-card glass">
+          <span class="kpi-label">Atualização</span>
+          <strong class="kpi-value compact" id="foreignUpdate">—</strong>
+          <small>Horário informado pelo TSE</small>
+        </article>
+      </div>
+
+      <section class="panel glass">
+        <div class="panel-head">
+          <div>
+            <span class="section-kicker">PRESIDENTE • EXTERIOR</span>
+            <h2>Votação agregada</h2>
+          </div>
+          <span class="muted-badge">ZZ</span>
+        </div>
+        <div class="candidate-list wide" id="foreignCandidateList">
+          <div class="skeleton candidate-skeleton"></div>
+          <div class="skeleton candidate-skeleton"></div>
+        </div>
+      </section>
+
+      <section class="notice-card glass">
+        <strong>Detalhamento por país</strong>
+        <p>Esta versão prioriza a totalização oficial agregada do exterior. O código já deixa a camada preparada para receber localidades internacionais sem inferir país a partir de dados incompletos.</p>
+      </section>
+    </section>
+
+    <section class="view" data-view-panel="senado">
+      <div class="section-intro glass">
+        <div>
+          <span class="section-kicker">SENADO FEDERAL</span>
+          <h2>54 cadeiras em disputa em 2026</h2>
+          <p>Duas vagas por unidade da Federação. As cores abaixo representam o partido dos dois candidatos mais votados em cada UF na parcial oficial — não uma projeção da composição final.</p>
+        </div>
+        <button class="primary-btn" id="loadSenateBtn">Carregar panorama nacional</button>
+      </div>
+
+      <section class="panel glass senate-panel">
+        <div class="panel-head">
+          <div>
+            <span class="section-kicker">PANORAMA NACIONAL</span>
+            <h2>Cadeiras em disputa</h2>
+          </div>
+          <span class="muted-badge" id="senateLoaded">Aguardando</span>
+        </div>
+        <div class="senate-seats" id="senateSeats"></div>
+        <div class="party-summary" id="senatePartySummary"></div>
+      </section>
+    </section>
+
+    <section class="view" data-view-panel="camara">
+      <div class="section-intro glass">
+        <div>
+          <span class="section-kicker">CÂMARA DOS DEPUTADOS</span>
+          <h2>Composição confirmada</h2>
+          <p>A distribuição de cadeiras de cargos proporcionais depende das regras de totalização. O APURA 26 não transforma votação parcial em projeção de assentos.</p>
+        </div>
+        <div class="seat-icon" aria-hidden="true">513</div>
+      </div>
+
+      <section class="panel glass empty-state">
+        <div class="empty-illustration">◒</div>
+        <h3>Cadeiras serão exibidas quando houver dados oficiais de eleitos</h3>
+        <p>Enquanto a totalização estiver em andamento, use o filtro <strong>Deputado Federal</strong> na aba Apuração para acompanhar votos e candidatos por UF.</p>
+      </section>
+    </section>
+  </main>
+
+  <footer class="footer glass">
+    <div>
+      <strong>APURA 26</strong>
+      <span>Projeto independente • não é um produto oficial do TSE</span>
+    </div>
+    <div class="footer-credit">
+      Criado por <strong>Rodrigo Bahiense</strong> • 2026
+    </div>
+  </footer>
+
+  <nav class="mobile-nav glass" aria-label="Navegação móvel">
+    <button class="mobile-nav-btn is-active" data-view="apuracao"><span>◉</span>Apuração</button>
+    <button class="mobile-nav-btn" data-view="exterior"><span>◎</span>Exterior</button>
+    <button class="mobile-nav-btn" data-view="senado"><span>◌</span>Senado</button>
+    <button class="mobile-nav-btn" data-view="camara"><span>◒</span>Câmara</button>
+  </nav>
+
+  <div class="toast-stack" id="toastStack" aria-live="polite"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script type="module" src="./js/app.js"></script>
+</body>
+</html>
